@@ -129,7 +129,7 @@ IMPORTANTE: os dados das métricas, health_checks e git_commit devem ser realist
 // ─── API ──────────────────────────────────────────────────────────────────────
 async function callClaude(system, user, maxTokens = 4000) {
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch("/api/claude", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
