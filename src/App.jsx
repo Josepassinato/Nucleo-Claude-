@@ -519,7 +519,7 @@ export default function App() {
     const cgResult = await callClaude(
       SYSTEM_CODEGEN,
       `Proposta técnica aprovada:\n${JSON.stringify(proposal, null, 2)}`,
-      4000
+      8000
     );
 
     // FIX #8: show error if codegen fails
@@ -794,8 +794,8 @@ export default function App() {
             </div>
           </Card>
 
-          {/* Quick examples (only on idle) */}
-          {phase === PHASES.IDLE && (
+          {/* Quick examples (idle or typing) */}
+          {(phase === PHASES.IDLE || phase === PHASES.CEO_INPUT) && (
             <Card className="p-4">
               <SecHead icon="💡" label="Exemplos" />
               <div className="space-y-2">
@@ -933,7 +933,21 @@ export default function App() {
                 </Card>
               )}
 
-              {/* Monitoring done state */}
+              {/* Executing — progress shown in Command view */}
+              {phase === PHASES.EXECUTING && (
+                <Card className="p-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <AgentAvatar role="CTO" active />
+                    <div className="flex-1">
+                      <div className="text-sm font-bold text-cyan-300">CTO Agent — Executando Pipeline</div>
+                      <div className="text-xs text-slate-500 animate-pulse">Gerando código, schema, migrations e fazendo deploy...</div>
+                    </div>
+                    <Pulse active color="cyan" />
+                  </div>
+                  <ProgBar value={gProgress} color="cyan" pulse />
+                  <div className="mt-3 text-xs text-slate-600 text-center">Acompanhe o progresso em tempo real nas abas acima ↑</div>
+                </Card>
+              )}
               {phase === PHASES.MONITORING && (
                 <Card className="p-5">
                   <div className="flex items-center gap-3 mb-4">
@@ -970,7 +984,16 @@ export default function App() {
                 <ErrorBanner message={`Falha na geração de código: ${codeGen._error}. Tente novamente com uma descrição mais detalhada.`} />
               )}
 
-              {!codeGen && (
+              {!codeGen && loading && phase === PHASES.EXECUTING && (
+                <Card className="p-8 text-center">
+                  <div className="text-4xl mb-3 animate-pulse">⚡</div>
+                  <p className="text-cyan-400 text-sm font-semibold">Code Generation Engine rodando...</p>
+                  <p className="text-slate-500 text-xs mt-2">Gerando arquivos, schema e migrations. Pode levar 15-30s.</p>
+                  <div className="mt-4"><ProgBar value={gProgress} color="violet" pulse /></div>
+                </Card>
+              )}
+
+              {!codeGen && !loading && (
                 <Card className="p-8 text-center">
                   <div className="text-4xl mb-3">⚡</div>
                   <p className="text-slate-500 text-sm">Code Engine disponível após aprovação da proposta.</p>

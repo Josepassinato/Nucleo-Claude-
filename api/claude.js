@@ -10,6 +10,9 @@ export default async function handler(req, res) {
   }
 
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 55000); // 55s safety margin
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -18,7 +21,10 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify(req.body),
+      signal: controller.signal,
     });
+
+    clearTimeout(timeout);
 
     const data = await response.json();
 
@@ -28,6 +34,9 @@ export default async function handler(req, res) {
 
     return res.status(200).json(data);
   } catch (err) {
+    if (err.name === 'AbortError') {
+      return res.status(504).json({ error: 'Request timed out. Try a shorter prompt or retry.' });
+    }
     return res.status(500).json({ error: err.message });
   }
 }
